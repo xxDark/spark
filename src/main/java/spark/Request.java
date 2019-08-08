@@ -268,7 +268,7 @@ public class Request {
 
     private void readBodyAsBytes() {
         try {
-            bodyAsBytes = IOUtils.toByteArray(servletRequest.getInputStream(), servletRequest.getContentLength());
+            bodyAsBytes = IOUtils.toByteArray(servletRequest.getInputStream());
         } catch (Exception e) {
             LOG.warn("Exception when reading body", e);
         }
