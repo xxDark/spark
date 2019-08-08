@@ -49,11 +49,7 @@ class RouteEntry {
             // Is filter and matches all
             return true;
         }
-        boolean match = false;
-        if (this.httpMethod == httpMethod) {
-            match = matchPath(path);
-        }
-        return match;
+        return this.httpMethod == httpMethod && matchPath(path);
     }
 
     private boolean matchPath(String path) { // NOSONAR

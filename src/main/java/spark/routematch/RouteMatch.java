@@ -27,7 +27,6 @@ public class RouteMatch {
     private String acceptType;
 
     public RouteMatch(Object target, String matchUri, String requestUri, String acceptType) {
-        super();
         this.target = target;
         this.matchUri = matchUri;
         this.requestURI = requestUri;
