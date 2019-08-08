@@ -25,7 +25,7 @@ import java.nio.ByteBuffer;
  *
  * @author alex
  */
-class BytesSerializer extends Serializer {
+final class BytesSerializer extends Serializer {
 
     @Override
     public boolean canProcess(Object element) {

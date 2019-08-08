@@ -18,25 +18,23 @@ public class StaticFilesFolder {
 
     @Deprecated
     public static final void localConfiguredTo(String folder) {
-
         local = removeLeadingAndTrailingSlashesFrom(folder);
     }
 
     @Deprecated
     public static final void externalConfiguredTo(String folder) {
-
         String unixLikeFolder = Paths.get(folder).toAbsolutePath().toString().replace("\\", "/");
         LOG.warn("Registering external static files folder [{}] as [{}].", folder, unixLikeFolder);
         external = removeLeadingAndTrailingSlashesFrom(unixLikeFolder);
     }
 
     @Deprecated
-    public static final String local() {
+    public static String local() {
         return local;
     }
 
     @Deprecated
-    public static final String external() {
+    public static String external() {
         return external;
     }
 

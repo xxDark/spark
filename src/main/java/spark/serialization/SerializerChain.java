@@ -43,6 +43,17 @@ public final class SerializerChain {
     }
 
     /**
+     * Add new serializer to the chain
+     *
+     * @param serializer a serializer to add
+     */
+    public void addSerializer(Serializer serializer) {
+        Serializer node = root;
+        for (; node.next != null; node = node.next);
+        node.setNext(serializer);
+    }
+
+    /**
      * Process the output.
      *
      * @param outputStream the output stream to write to.

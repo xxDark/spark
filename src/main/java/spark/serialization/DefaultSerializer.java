@@ -25,7 +25,7 @@ import java.nio.charset.StandardCharsets;
  *
  * @author alex
  */
-class DefaultSerializer extends Serializer {
+final class DefaultSerializer extends Serializer {
 
     @Override
     public boolean canProcess(Object element) {

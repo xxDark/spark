@@ -88,9 +88,12 @@ public final class Service extends Routable {
     private final ExceptionMapper exceptionMapper = new ExceptionMapper();
 
     // default exception handler during initialization phase
-    private Consumer<Exception> initExceptionHandler = (e) -> {
-        LOG.error("ignite failed", e);
-        System.exit(100);
+    private Consumer<Exception> initExceptionHandler = new Consumer<Exception>() {
+        @Override
+        public void accept(Exception e) {
+            LOG.error("ignite failed", e);
+            System.exit(100);
+        }
     };
 
     /**
@@ -553,6 +556,7 @@ public final class Service extends Routable {
         if (!initialized) {
 
             initializeRouteMatcher();
+            initialized = true;
 
             if (!isRunningFromServlet()) {
                 new Thread(() -> {
@@ -590,7 +594,6 @@ public final class Service extends Routable {
                     }
                 }).start();
             }
-            initialized = true;
         }
     }
 

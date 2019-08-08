@@ -34,6 +34,7 @@ import spark.RequestResponseFactory;
 import spark.Response;
 import spark.embeddedserver.jetty.HttpRequestWrapper;
 import spark.route.HttpMethod;
+import spark.serialization.Serializer;
 import spark.serialization.SerializerChain;
 import spark.staticfiles.StaticFilesConfiguration;
 
@@ -55,7 +56,6 @@ public class MatcherFilter implements Filter {
     private SerializerChain serializerChain;
     private ExceptionMapper exceptionMapper;
 
-    private boolean externalContainer;
     private boolean hasOtherHandlers;
 
     /**
@@ -70,13 +70,11 @@ public class MatcherFilter implements Filter {
     public MatcherFilter(spark.route.Routes routeMatcher,
                          StaticFilesConfiguration staticFiles,
                          ExceptionMapper exceptionMapper,
-                         boolean externalContainer,
+                         @SuppressWarnings("unused") boolean externalContainer,
                          boolean hasOtherHandlers) {
-
         this.routeMatcher = routeMatcher;
         this.staticFiles = staticFiles;
         this.exceptionMapper = exceptionMapper;
-        this.externalContainer = externalContainer;
         this.hasOtherHandlers = hasOtherHandlers;
         this.serializerChain = new SerializerChain();
     }
@@ -90,30 +88,23 @@ public class MatcherFilter implements Filter {
     public void doFilter(ServletRequest servletRequest,
                          ServletResponse servletResponse,
                          FilterChain chain) throws IOException, ServletException {
-
         HttpServletRequest httpRequest = (HttpServletRequest) servletRequest;
         HttpServletResponse httpResponse = (HttpServletResponse) servletResponse;
 
         // handle static resources
-        boolean consumedByStaticFile = staticFiles.consume(httpRequest, httpResponse);
-
-        if (consumedByStaticFile) {
+        if (staticFiles.consume(httpRequest, httpResponse)) {
             return;
         }
 
         String method = getHttpMethodFrom(httpRequest);
-
         String httpMethodStr = method.toLowerCase();
         String uri = httpRequest.getRequestURI();
         String acceptType = httpRequest.getHeader(ACCEPT_TYPE_REQUEST_MIME_HEADER);
 
         Body body = Body.create();
-
         RequestWrapper requestWrapper = RequestWrapper.create();
         ResponseWrapper responseWrapper = ResponseWrapper.create();
-
         Response response = RequestResponseFactory.create(httpResponse);
-
         HttpMethod httpMethod = HttpMethod.get(httpMethodStr);
 
         RouteContext context = RouteContext.create()
@@ -129,17 +120,12 @@ public class MatcherFilter implements Filter {
 
         try {
             try {
-
                 BeforeFilters.execute(context);
                 Routes.execute(context);
                 AfterFilters.execute(context);
-
             } catch (HaltException halt) {
-
                 Halt.modify(httpResponse, body, halt);
-
             } catch (Exception generalException) {
-
                 GeneralError.modify(
                         httpRequest,
                         httpResponse,
@@ -148,7 +134,6 @@ public class MatcherFilter implements Filter {
                         responseWrapper,
                         exceptionMapper,
                         generalException);
-
             }
 
             // If redirected and content is null set to empty string to not throw NotConsumedException
@@ -173,7 +158,7 @@ public class MatcherFilter implements Filter {
                     responseWrapper.setDelegate(RequestResponseFactory.create(httpResponse));
                     body.set(CustomErrorPages.getFor(404, requestWrapper, responseWrapper));
                 } else {
-                    body.set(String.format(CustomErrorPages.NOT_FOUND));
+                    body.set(CustomErrorPages.NOT_FOUND);
                 }
             }
         } finally {
@@ -207,9 +192,17 @@ public class MatcherFilter implements Filter {
         return method;
     }
 
+    /**
+     * @see SerializerChain#addSerializer(Serializer)
+     */
+    public void addSerializer(Serializer serializer) {
+        if (serializer == null) {
+            throw new NullPointerException("serializer");
+        }
+        serializerChain.addSerializer(serializer);
+    }
+
     @Override
     public void destroy() {
     }
-
-
 }

@@ -27,7 +27,7 @@ import spark.utils.IOUtils;
  *
  * @author alex
  */
-class InputStreamSerializer extends Serializer {
+final class InputStreamSerializer extends Serializer {
 
     @Override
     public boolean canProcess(Object element) {

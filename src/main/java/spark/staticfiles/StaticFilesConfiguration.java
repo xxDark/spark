@@ -114,9 +114,8 @@ public class StaticFilesConfiguration {
      * Clears all static file configuration
      */
     public void clear() {
-
         if (staticResourceHandlers != null) {
-            staticResourceHandlers.clear();
+            //staticResourceHandlers.clear();
             staticResourceHandlers = null;
         }
 
@@ -141,7 +140,6 @@ public class StaticFilesConfiguration {
         Assert.notNull(folder, "'folder' must not be null");
 
         if (!staticResourcesSet) {
-
             if (staticResourceHandlers == null) {
                 staticResourceHandlers = new ArrayList<>();
             }

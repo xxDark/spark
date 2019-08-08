@@ -41,7 +41,7 @@ public class QueryParamsMap {
     /**
      * Holds the nested keys
      */
-    private Map<String, QueryParamsMap> queryMap = new HashMap<>();
+    private final Map<String, QueryParamsMap> queryMap;
 
     /**
      * Value(s) for this key
@@ -59,11 +59,14 @@ public class QueryParamsMap {
         if (request == null) {
             throw new IllegalArgumentException("HttpServletRequest cannot be null.");
         }
-        loadQueryString(request.getParameterMap());
+        Map<String, String[]> parameterMap = request.getParameterMap();
+        queryMap = new HashMap<>(parameterMap.size());
+        loadQueryString(parameterMap);
     }
 
     // Just for testing
     protected QueryParamsMap() {
+        queryMap = new HashMap<>();
     }
 
 
@@ -77,6 +80,7 @@ public class QueryParamsMap {
      * @param values the values
      */
     protected QueryParamsMap(String key, String... values) {
+        queryMap = new HashMap<>(1);
         loadKeys(key, values);
     }
 
@@ -86,6 +90,7 @@ public class QueryParamsMap {
      * @param params the parameters
      */
     protected QueryParamsMap(Map<String, String[]> params) {
+        queryMap = new HashMap<>(params.size());
         loadQueryString(params);
     }
 
@@ -112,14 +117,13 @@ public class QueryParamsMap {
         if (parsed == null) {
             return;
         }
+        String mapKey = parsed[0];
 
-        if (!queryMap.containsKey(parsed[0])) {
-            queryMap.put(parsed[0], new QueryParamsMap());
-        }
+        QueryParamsMap map = queryMap.computeIfAbsent(mapKey, __ -> new QueryParamsMap());
         if (!parsed[1].isEmpty()) {
-            queryMap.get(parsed[0]).loadKeys(parsed[1], value);
+            map.loadKeys(parsed[1], value);
         } else {
-            queryMap.get(parsed[0]).values = value.clone();
+            map.values = value.clone();
         }
     }
 
@@ -133,7 +137,7 @@ public class QueryParamsMap {
         }
     }
 
-    protected static final String cleanKey(String group) {
+    protected static String cleanKey(String group) {
         if (group.startsWith("[")) {
             return group.substring(1, group.length() - 1);
         } else {
@@ -160,11 +164,7 @@ public class QueryParamsMap {
     public QueryParamsMap get(String... keys) {
         QueryParamsMap ret = this;
         for (String key : keys) {
-            if (ret.queryMap.containsKey(key)) {
-                ret = ret.queryMap.get(key);
-            } else {
-                ret = NULL;
-            }
+            ret = ret.queryMap.getOrDefault(key, NULL);
         }
         return ret;
     }

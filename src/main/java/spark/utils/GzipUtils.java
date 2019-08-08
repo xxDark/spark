@@ -64,9 +64,9 @@ public class GzipUtils {
 
         // GZIP Support handled here. First we must ensure that we want to use gzip, and that the client supports gzip
         boolean acceptsGzip = Collections.list(httpRequest.getHeaders(ACCEPT_ENCODING)).stream().anyMatch(STRING_MATCH);
-        boolean wantGzip = httpResponse.getHeaders(CONTENT_ENCODING).contains(GZIP);
 
         if (acceptsGzip) {
+            boolean wantGzip = httpResponse.getHeaders(CONTENT_ENCODING).contains(GZIP);
             if (!requireWantsHeader || wantGzip) {
                 responseStream = new GZIPOutputStream(responseStream, true);
                 addContentEncodingHeaderIfMissing(httpResponse, wantGzip);
@@ -88,11 +88,7 @@ public class GzipUtils {
     private static class StringMatch implements Predicate<String> {
         @Override
         public boolean test(String s) {
-            if (s == null) {
-                return false;
-            }
-
-            return s.contains(GZIP);
+            return s != null && s.contains(GZIP);
         }
     }
 

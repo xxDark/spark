@@ -82,7 +82,6 @@ public abstract class Utf8Appendable {
         _state = UTF8_ACCEPT;
     }
 
-
     private void checkCharAppend() throws IOException {
         if (_state != UTF8_ACCEPT) {
             _appendable.append(REPLACEMENT);

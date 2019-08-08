@@ -67,10 +67,10 @@ public abstract class AbstractFileResolvingResource extends AbstractResource {
         try {
             URL url = getURL();
             if (ResourceUtils.isFileURL(url)) {
-                // Proceed with file system resolution...
+                // Proceed with file system resolution
                 return getFile().exists();
             } else {
-                // Try a URL connection content-length header...
+                // Try a URL connection content-length header
                 URLConnection con = url.openConnection();
                 customizeConnection(con);
                 HttpURLConnection httpCon =
@@ -92,8 +92,7 @@ public abstract class AbstractFileResolvingResource extends AbstractResource {
                     return false;
                 } else {
                     // Fall back to stream existence: can we open the stream?
-                    InputStream is = getInputStream();
-                    is.close();
+                    getInputStream().close();
                     return true;
                 }
             }

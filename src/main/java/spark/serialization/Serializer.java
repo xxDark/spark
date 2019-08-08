@@ -26,7 +26,7 @@ import java.io.OutputStream;
  */
 public abstract class Serializer {
 
-    private Serializer next;
+    Serializer next;
 
     /**
      * Sets the next serializer in the chain.
@@ -49,7 +49,7 @@ public abstract class Serializer {
             process(outputStream, element);
         } else {
             if (next != null) {
-                this.next.processElement(outputStream, element);
+                next.processElement(outputStream, element);
             }
         }
     }
