@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.StringWriter;
 import java.io.Writer;
@@ -74,20 +73,14 @@ public final class IOUtils {
     /**
      * The system line separator string.
      */
-    public static final String LINE_SEPARATOR;
-
-    static {
-        // avoid security issues
-        StringWriter buf = new StringWriter(4); // NOSONAR
-        PrintWriter out = new PrintWriter(buf);
-        out.println();
-        LINE_SEPARATOR = buf.toString();
-    }
+    public static final String LINE_SEPARATOR = System.lineSeparator();
 
     /**
      * The default buffer size to use.
      */
-    private static final int DEFAULT_BUFFER_SIZE = 1024 * 4;
+    private static final int DEFAULT_BUFFER_SIZE = Integer.getInteger("spark.default-buffer-size", 1024 * 4);
+    private static final ThreadLocal<byte[]> BYTES_THREAD_BUFFER =  ThreadLocal.withInitial(() -> new byte[DEFAULT_BUFFER_SIZE]);
+    private static final ThreadLocal<char[]> CHARS_THREAD_BUFFER = ThreadLocal.withInitial(() -> new char[DEFAULT_BUFFER_SIZE]);
 
     private IOUtils() {
     }
@@ -121,19 +114,28 @@ public final class IOUtils {
      *
      * @param input
      *            the <code>InputStream</code> to read from
+     * @param bufferSize
+     *            size of the the buffer into which the data is read
      * @return the byte array
      * @throws NullPointerException
      *             if the input is null
      * @throws IOException
      *             if an I/O error occurs
      */
-    public static byte[] toByteArray(InputStream input) throws IOException {
+    public static byte[] toByteArray(InputStream input, int bufferSize) throws IOException {
         ByteArrayOutputStream os = new ByteArrayOutputStream();
-        byte[] buf = new byte[1024];
-        for (int n = input.read(buf); n != -1; n = input.read(buf)) {
+        byte[] buf = bufferSize == DEFAULT_BUFFER_SIZE ? BYTES_THREAD_BUFFER.get() : new byte[bufferSize];
+        for (int n = input.read(buf, 0, bufferSize); n != -1; n = input.read(buf, 0, bufferSize)) {
             os.write(buf, 0, n);
         }
         return os.toByteArray();
+    }
+
+    /**
+     * @see IOUtils#toByteArray(InputStream, int)
+     */
+    public static byte[] toByteArray(InputStream input) throws IOException {
+        return toByteArray(input, DEFAULT_BUFFER_SIZE);
     }
 
     /**
@@ -255,10 +257,10 @@ public final class IOUtils {
      * @since Commons IO 1.3
      */
     public static long copyLarge(Reader input, Writer output) throws IOException {
-        char[] buffer = new char[DEFAULT_BUFFER_SIZE];
+        int size = DEFAULT_BUFFER_SIZE;
+        char[] buffer = CHARS_THREAD_BUFFER.get();
         long count = 0;
-        int n = 0;
-        while (-1 != (n = input.read(buffer))) {
+        for (int n = input.read(buffer, 0, size); n != -1; n = input.read(buffer, 0, size)) {
             output.write(buffer, 0, n);
             count += n;
         }
